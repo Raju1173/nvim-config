@@ -1,6 +1,7 @@
 print("I use Neovim btw")
 
 require("config.options")
+require("config.clang-format")
 require("config.keybinds")
 require("config.lsp")
 require("config.cmp")
