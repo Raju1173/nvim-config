@@ -1,15 +1,18 @@
-vim.api.nvim_create_autocmd("BufWritePre", {
+vim.api.nvim_create_autocmd("BufWritePost", {
     pattern = { "*.cpp", "*.h", "*.hpp" },
     callback = function()
-        local view = vim.fn.winsaveview()
-        
-        vim.cmd([[silent! %!clang-format --style="{BasedOnStyle: LLVM, IndentWidth: 4, TabWidth: 4, UseTab: Never, BreakBeforeBraces: Custom, BraceWrapping: {AfterClass: true, AfterControlStatement: Always, AfterEnum: true, AfterFunction: True, AfterNamespace: true, AfterStruct: true, AfterUnion: true, BeforeCatch: true, BeforeElse: true, BeforeLambdaBody: false}, IndentCaseLabels: true, ColumnLimit: 100000, ReflowComments: false, SortIncludes: Never, AllowShortIfStatementsOnASingleLine: Never, AllowShortLoopsOnASingleLine: false, AllowShortFunctionsOnASingleLine: Inline, AllowShortBlocksOnASingleLine: Never, AllowShortLambdasOnASingleLine: All, IndentAccessModifiers: false, AccessModifierOffset: -4, ConstructorInitializerAllOnOneLineOrOnePerLine: true, PackConstructorInitializers: CurrentLine, IndentCaseBlocks: true}"]])
+        local file = vim.fn.expand("%:p")
 
+        local result = vim.system({"clang-format", "-i", "--style=file", "--assume-filename=" .. file, file}):wait()
 
-        if vim.v.shell_error ~= 0 then
-            vim.cmd("undo")
+        if result.code ~= 0 then
+            vim.notify(
+                "clang-format failed:\n" .. (result.stderr or ""),
+                vim.log.levels.ERROR
+            )
+            return
         end
-        
-        vim.fn.winrestview(view)
+
+        vim.cmd("checktime")
     end,
 })
